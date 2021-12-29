@@ -1,0 +1,57 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+
+entity ent_counter is
+--  Port ( );
+generic(
+c_clkfreq : integer := 100_000_000
+);
+port(
+up_down : in std_logic;
+clk  : in std_logic;
+sw_in1 : in std_logic_vector(1 downto 0);
+counter : out std_logic_vector(7 downto 0)
+);
+end ent_counter;
+
+architecture Behavioral of ent_counter is
+
+--constant
+constant c_timer_2sec_lim : integer := c_clkfreq*2; 
+constant c_timer_1sec_lim : integer := c_clkfreq; 
+constant c_timer_500ms_lim : integer := c_clkfreq/2; 
+constant c_timer_250ms_lim : integer := c_clkfreq/4; 
+
+signal timer : integer range 0 to c_timer_2sec_lim :=0;
+signal timer_limit : integer range 0 to c_timer_2sec_lim :=0;
+signal counter_int : std_logic_vector(7 downto 0) := (others => '0'); 
+
+begin
+--combination logic assignment
+timer_limit <= c_timer_2sec_lim when sw_in1 = "00" else
+               c_timer_1sec_lim when sw_in1 = "01" else
+               c_timer_500ms_lim when sw_in1 = "10" else
+               c_timer_250ms_lim ;
+
+process(clk) begin 
+    if(rising_edge(clk)) then
+        if(timer >= timer_limit-1  and up_down='0') then 
+            counter_int <= counter_int +1;
+            timer <= 0;
+        elsif (timer >= timer_limit-1  and up_down='1') then
+            counter_int <= counter_int -1;
+            timer <= 0;
+        else    
+            timer <= timer +1;
+            --counter <= counter +1 dersek hata verir, output sinyalini input olarak kullanamazs?n der, yani R value de?il
+            --else
+            --counter_int <= counter_int;
+        end if;
+    end if;
+end process;
+
+counter <= counter_int;
+
+end Behavioral;
